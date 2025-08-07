@@ -7,3 +7,5 @@ Pillow
 ultralytics
 qdrant-client
 python-dotenv
+insightface==0.7.3
+python-supabase==1.0.3
