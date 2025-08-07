@@ -1,9 +1,9 @@
 fastapi
 uvicorn
+onnxruntime
 opencv-python-headless
 numpy
 Pillow
-insightface
+ultralytics
+qdrant-client
 python-dotenv
-supabase
-httpx
