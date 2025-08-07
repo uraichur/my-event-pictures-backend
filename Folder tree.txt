@@ -1,0 +1,17 @@
+my-event-pictures-backend/
+│
+├── main.py
+├── requirements.txt         ← we’ll create this in Step 4
+├── .env                     ← we’ll add this in Step 3
+│
+├── group_upload.html
+├── guest_selfie.html
+│
+├── event_photos/
+│   └── dummy.jpg            ← any small placeholder image
+│
+├── face_crops/              ← can be empty (just ensure folder exists)
+│
+└── README.md                ← already created by GitHub
+
+

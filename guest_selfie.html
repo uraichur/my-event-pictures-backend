@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Take a Selfie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    video, canvas, img#preview {
+      width: 90%;
+      max-width: 320px;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 24px;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #004999;
+    }
+
+    #loader {
+      display: none;
+      font-size: 16px;
+      color: #0066cc;
+      margin: 15px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 20px 0;
+    }
+
+    .grid-item {
+      position: relative;
+    }
+
+    .grid-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .download-tip {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 13px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .grid-item:hover .download-tip {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h2>Take a Selfie</h2>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display: none;"></canvas>
+  <img id="preview" alt="Captured selfie" style="display: none;"></br>
+  <button id="capture">Capture Selfie</button>
+
+  <div id="loader">Processing selfie...</div>
+  <div id="resultArea" class="grid"></div>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const loader = document.getElementById("loader");
+    const resultArea = document.getElementById("resultArea");
+    const captureButton = document.getElementById("capture");
+    const preview = document.getElementById("preview");
+
+    let selfieBlob = null;
+    let selfieCaptured = false;
+
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+    });
+
+    captureButton.onclick = async () => {
+      if (!selfieCaptured) {
+        // First-time capture
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const stream = video.srcObject;
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = "none";
+
+        canvas.toBlob(async (blob) => {
+          selfieBlob = blob;
+          const imageURL = URL.createObjectURL(blob);
+          preview.src = imageURL;
+          preview.style.display = "block";
+          captureButton.innerText = "Search";
+          selfieCaptured = true;
+
+          await processSelfie();
+        }, 'image/jpeg');
+      } else {
+        // Re-process existing selfie
+        await processSelfie();
+      }
+    };
+
+    async function processSelfie() {
+      loader.style.display = "block";
+      resultArea.innerHTML = "";
+
+      const formData = new FormData();
+      formData.append("file", selfieBlob, "selfie.jpg");
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/upload-selfie", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+        loader.style.display = "none";
+
+        if (result.matched_images && result.matched_images.length > 0) {
+          result.matched_images.forEach(imgName => {
+            const link = document.createElement("a");
+            link.href = `http://127.0.0.1:8000/event_photos/${imgName}`;
+            link.download = imgName;
+            link.target = "_blank";
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "grid-item";
+
+            const img = document.createElement("img");
+            img.src = link.href;
+
+            const tip = document.createElement("div");
+            tip.className = "download-tip";
+            tip.innerText = "Download Image";
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(tip);
+            link.appendChild(wrapper);
+            resultArea.appendChild(link);
+          });
+        } else {
+          let msg = result.message || "❌ No matches found.";
+          alert(msg);
+        }
+      } catch (err) {
+        loader.style.display = "none";
+        alert("❌ Upload failed.");
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

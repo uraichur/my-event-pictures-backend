@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+opencv-python-headless
+numpy
+Pillow
+insightface
+python-dotenv
+supabase
+httpx

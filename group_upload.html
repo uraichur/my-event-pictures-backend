@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Group Photos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+            background: #f4f7fa;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #fff;
+            max-width: 90%;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 24px;
+            background-color: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #004999;
+        }
+
+        #loader {
+            display: none;
+            font-size: 18px;
+            color: #0066cc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Select Group Photos</h2>
+    <input type="file" id="groupPhotoInput" multiple><br>
+    <button onclick="uploadGroupPhotos()">Upload</button>
+
+    <div id="loader">Processing...</div>
+
+    <script>
+        const loader = document.getElementById("loader");
+
+        async function uploadGroupPhotos() {
+            const fileInput = document.getElementById("groupPhotoInput");
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                alert("Please select at least one photo.");
+                return;
+            }
+
+            loader.style.display = "block";
+
+            for (let i = 0; i < files.length; i++) {
+                const formData = new FormData();
+                formData.append("file", files[i]);
+
+                try {
+                    const response = await fetch("http://127.0.0.1:8000/upload-group-photo", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    console.log(result.message);
+                } catch (err) {
+                    console.error("Upload failed for file:", files[i].name);
+                }
+            }
+
+            loader.style.display = "none";
+            alert("✅ All group photos uploaded!");
+        }
+    </script>
+</body>
+</html>
