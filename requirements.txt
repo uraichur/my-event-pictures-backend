@@ -9,3 +9,4 @@ qdrant-client
 python-dotenv
 insightface==0.7.3
 supabase
+python-multipart
