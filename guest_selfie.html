@@ -146,7 +146,7 @@
       formData.append("file", selfieBlob, "selfie.jpg");
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/upload-selfie", {
+        const response = await fetch("https://my-event-pictures-backend.onrender.com/upload-selfie", {
           method: "POST",
           body: formData
         });
@@ -157,7 +157,7 @@
         if (result.matched_images && result.matched_images.length > 0) {
           result.matched_images.forEach(imgName => {
             const link = document.createElement("a");
-            link.href = `http://127.0.0.1:8000/event_photos/${imgName}`;
+            link.href = `https://my-event-pictures-backend.onrender.com/event_photos/${imgName}`;
             link.download = imgName;
             link.target = "_blank";
 
